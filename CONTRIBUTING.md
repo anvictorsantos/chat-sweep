@@ -3,6 +3,8 @@
 ## Ground rules
 
 - Read `AGENTS.md` first. The honesty rule there is the whole design.
+- Read the relevant part of `CONTEXT.md` before renaming a concept or adding a
+  surface — its vocabulary is the one the code uses.
 - One cohesive change per PR, typed, with the checks run and reported.
 - Adding a capability (a new platform, a new surface) is cheap. Changing what a
   capability means for the confirmation copy is a product decision — open an

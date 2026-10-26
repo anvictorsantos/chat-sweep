@@ -7,6 +7,11 @@ A Chrome/Firefox extension (Manifest V3, no build-time framework, no network
 access) for **ChatGPT** and **Claude**. Cursor is recognised and explained, not
 faked: it is a desktop IDE, so a browser extension cannot reach its history.
 
+**Docs:** this file for use and behaviour · [`CONTEXT.md`](./CONTEXT.md) for the
+vocabulary, platform facts and rejected alternatives · [`AGENTS.md`](./AGENTS.md)
+for the rules any agent or contributor must follow · [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+for setup, debugging and adding a platform.
+
 ## What this actually does (read this first)
 
 The premise is worth being precise about, because two of the three products you
@@ -58,8 +63,8 @@ npm run build
   if the toolbar reports the extension cannot run, allow access for the site in
   the extension's permissions panel.
 
-`npm run zip` produces `dist/threadsweep-0.1.0-{chrome,firefox}.zip` for a store
-upload. Requires the `zip` binary.
+`npm run zip` produces `dist/threadsweep-<version>-{chrome,firefox}.zip` for a
+store upload. Requires the `zip` binary.
 
 ## Use
 
@@ -121,12 +126,18 @@ permission beyond what `activeTab`-style messaging needs.
 ## Development
 
 ```
-src/core/      pure logic: selection model, confirmation copy, transcript, hide
+src/core/      pure rules: selection, confirmation copy, failure taxonomy,
+               transcript markdown, trigger geometry
 src/adapters/  one file per platform: selectors + its own delete flow
 src/ui/        shadow-DOM overlay: badges, toolbar, dialog, toast
 src/content/   composition: adapter + overlay + the irreversible action
 src/popup/     the extension action popup
+src/shared/    browser API shim and debug logging
+tests/smoke/   fixture + driver that exercise the built bundle in real Chrome
 ```
+
+Naming and the reasoning behind each piece are in [`CONTEXT.md`](./CONTEXT.md);
+the working rules are in [`AGENTS.md`](./AGENTS.md).
 
 Checks:
 

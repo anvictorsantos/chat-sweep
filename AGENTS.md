@@ -2,7 +2,9 @@
 
 Applies to every agent and every task in this repository. `README.md` explains
 what the extension does and, more importantly, what each platform actually
-allows. When a document and the source disagree, the source wins — read the file.
+allows; `CONTEXT.md` is the vocabulary and design record — use its terms, and read
+the relevant section before renaming anything. When a document and the source
+disagree, the source wins — read the file.
 
 ## The honesty rule
 
@@ -35,7 +37,9 @@ Dependency direction points inwards:
 
 - `src/core/**` — pure. No DOM except `hide.ts`, which is a documented exception
   because hiding is inherently a DOM operation. No imports from `adapters`,
-  `ui`, `content` or `popup`. Unit tested.
+  `ui`, `content` or `popup`. Unit tested. It owns the vocabulary that has
+  behaviour: `selection.ts`, `plan.ts`, `failure.ts`, `geometry.ts`,
+  `transcript.ts`.
 - `src/adapters/**` — one platform per file. Declares what it can do through
   `Surface.kind`, never assumes deletion exists. `dom.ts` holds the shared
   interaction helpers; every lookup takes a fallback chain and every interaction
@@ -44,9 +48,14 @@ Dependency direction points inwards:
   platform work, never touches `chrome.*` except through `shared/browser.ts`.
 - `src/content/main.ts` — the only place that performs something irreversible.
 - `src/popup/**` — reads status, forwards commands, holds no state.
+- `src/shared/**` — the browser API shim (`browser.ts`) and the debug flag
+  (`log.ts`). Nothing else belongs here.
 
 Rules:
 
+- **Use `CONTEXT.md` vocabulary in code and comments**: sweep, mode, item,
+  target, surface, strategy, trigger, run, failure reason. Do not invent synonyms
+  for these in new files.
 - A new platform is a new file in `src/adapters/` plus a registry entry plus a
   `matches` test. Nothing else.
 - **A failed scripted action returns a reason.** `RemoveResult.failure` comes
