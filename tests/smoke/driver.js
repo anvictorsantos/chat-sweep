@@ -99,6 +99,25 @@ async function main() {
   await send('threadsweep:open', 'history');
   check('four conversations are selectable', shadow.querySelectorAll('.badge').length === 4);
 
+  // The badge must sit level with the conversation title, not at the row's
+  // top padding, and must not show a native title tooltip over the title.
+  for (const badge of shadow.querySelectorAll('.badge')) {
+    const id = badge.dataset.id;
+    const anchor = id === undefined ? null : document.querySelector(`nav a[href="${id}"]`);
+    check(`history badge has a title anchor (${id})`, anchor instanceof HTMLElement);
+    if (!(anchor instanceof HTMLElement)) continue;
+
+    const badgeRect = badge.getBoundingClientRect();
+    const anchorRect = anchor.getBoundingClientRect();
+    const badgeCentre = badgeRect.top + badgeRect.height / 2;
+    const anchorCentre = anchorRect.top + anchorRect.height / 2;
+    check(
+      `history badge is vertically centred on its title (${id})`,
+      Math.abs(badgeCentre - anchorCentre) <= 2,
+    );
+    check(`history badge has no native title tooltip (${id})`, badge.getAttribute('title') === null);
+  }
+
   await send('threadsweep:select-all');
   check('select all selects every conversation', (await send('threadsweep:status')).count === 4);
 

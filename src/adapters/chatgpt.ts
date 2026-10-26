@@ -77,6 +77,7 @@ const history: Surface = {
         id: href,
         label: title.length > 0 ? title : 'Untitled conversation',
         element: rowFor(anchor),
+        anchor,
         role: 'unknown',
         text: title,
       });
@@ -94,6 +95,7 @@ const history: Surface = {
       id,
       label: title.length > 0 ? title : 'Untitled conversation',
       element: rowFor(anchor),
+      anchor,
       role: 'unknown',
       text: title,
     };

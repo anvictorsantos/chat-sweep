@@ -61,6 +61,7 @@ function readItems(adapter: Adapter, mode: Mode): OverlayItem[] {
     id: item.id,
     label: item.label,
     element: item.element,
+    ...(item.anchor === undefined ? {} : { anchor: item.anchor }),
   }));
 }
 

@@ -27,6 +27,8 @@ export interface OverlayItem {
   readonly id: string;
   readonly label: string;
   readonly element: HTMLElement;
+  /** The title control inside `element`, used for vertical alignment. */
+  readonly anchor?: HTMLElement;
 }
 
 export interface RunRequest {
@@ -336,7 +338,6 @@ export class SweepOverlay {
       badge.dataset['id'] = item.id;
       badge.setAttribute('aria-pressed', 'false');
       badge.setAttribute('aria-label', `Select ${item.label}`);
-      badge.title = item.label;
       badge.innerHTML = CHECK_SVG;
       layer.append(badge);
       this.badges.set(item.id, badge);
@@ -413,6 +414,8 @@ export class SweepOverlay {
       if (badge === undefined) continue;
 
       const rect = item.element.getBoundingClientRect();
+      const anchor = item.anchor?.isConnected ? item.anchor : item.element;
+      const anchorRect = anchor.getBoundingClientRect();
       const visible =
         rect.width > 0 &&
         rect.height > 0 &&
@@ -423,8 +426,18 @@ export class SweepOverlay {
       badge.hidden = !visible;
       if (!visible) continue;
 
-      const left = mode === 'history' ? rect.right - 36 : Math.max(8, rect.left - 36);
-      const top = Math.min(Math.max(8, rect.top + 8), window.innerHeight - 36);
+      // History rows carry a title link; centre the badge on that text line so
+      // it sits level with the conversation title, not the row's padding.
+      const badgeSize = 26;
+      const inset = 10;
+      const maxLeft = window.innerWidth - badgeSize - 8;
+      const left = mode === 'history'
+        ? Math.min(rect.right - badgeSize - inset, maxLeft)
+        : Math.max(8, rect.left - badgeSize - inset);
+      const unclampedTop = mode === 'history'
+        ? anchorRect.top + (anchorRect.height - badgeSize) / 2
+        : rect.top + 8;
+      const top = Math.min(Math.max(8, unclampedTop), window.innerHeight - badgeSize - 8);
       badge.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
     }
   }

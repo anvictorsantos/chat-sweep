@@ -18,6 +18,11 @@ export interface AdapterItem {
   /** Short, human-readable preview used in the confirmation dialog. */
   readonly label: string;
   readonly element: HTMLElement;
+  /**
+   * The visible title/link control inside `element`. History surfaces use it to
+   * centre the overlay badge on the text line rather than on the whole row.
+   */
+  readonly anchor?: HTMLElement;
   readonly role: TranscriptRole;
   readonly text: string;
 }
