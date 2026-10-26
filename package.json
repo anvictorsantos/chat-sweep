@@ -1,0 +1,26 @@
+{
+  "name": "threadsweep",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Multi-select chat messages and conversations in ChatGPT and Claude, then delete or hide them behind an explicit confirmation. Chrome and Firefox.",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "icons": "node scripts/make-icons.mjs",
+    "build": "node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test src/core/*.test.ts src/adapters/*.test.ts",
+    "smoke": "node tests/smoke/run.mjs",
+    "verify": "npm run typecheck && npm test && npm run build",
+    "verify:all": "npm run verify && npm run smoke",
+    "zip": "node scripts/zip.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "esbuild": "^0.25.10",
+    "typescript": "^5.9.3"
+  }
+}

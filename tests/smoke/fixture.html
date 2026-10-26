@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>threadsweep smoke fixture</title>
+    <style>
+      body { font: 14px system-ui, sans-serif; margin: 0; display: flex; }
+      nav { width: 260px; padding: 12px; border-right: 1px solid #ddd; }
+      nav ul { list-style: none; margin: 0; padding: 0; }
+      nav li { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; }
+      main { padding: 12px; flex: 1; }
+      article { border: 1px solid #ddd; margin-bottom: 8px; padding: 8px; }
+      [role="menu"] { position: fixed; top: 10px; right: 10px; background: #fff; border: 1px solid #999; padding: 6px; }
+    </style>
+    <script>
+      // Stand-in for the extension runtime so the built content script can be
+      // driven exactly as the popup drives it.
+      window.__messages = [];
+      window.chrome = {
+        runtime: {
+          onMessage: {
+            addListener(listener) {
+              window.__listener = listener;
+            },
+          },
+        },
+      };
+    </script>
+    <script src="/dist/chrome/content.js"></script>
+    <script src="/tests/smoke/driver.js" defer></script>
+  </head>
+  <body>
+    <nav aria-label="Chat history">
+      <ul id="rows">
+        <li><a href="/c/one">Conversation one</a><button type="button" aria-label="Open conversation options">⋯</button></li>
+        <li><a href="/c/two">Conversation two</a><button type="button" aria-label="Open conversation options">⋯</button></li>
+        <li><a href="/c/three">Conversation three</a><button type="button" aria-label="Open conversation options">⋯</button></li>
+      </ul>
+    </nav>
+
+    <main>
+      <article data-testid="conversation-turn-0">
+        <div data-message-author-role="user">How do I sweep a thread?</div>
+      </article>
+      <article data-testid="conversation-turn-1">
+        <div data-message-author-role="assistant">Select the messages you no longer need.</div>
+      </article>
+      <article data-testid="conversation-turn-2">
+        <div data-message-author-role="user">And then?</div>
+      </article>
+    </main>
+
+    <pre id="smoke-result" data-smoke="pending">pending</pre>
+
+    <script>
+      // Fake the platform's conversation menu: options button -> menu -> Delete.
+      document.addEventListener('click', (event) => {
+        const trigger = event.target.closest?.('[aria-label^="Open conversation options"]');
+        if (trigger === null || trigger === undefined) return;
+
+        for (const existing of document.querySelectorAll('[role="menu"]')) existing.remove();
+
+        const row = trigger.closest('li');
+        const menu = document.createElement('div');
+        menu.setAttribute('role', 'menu');
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.setAttribute('role', 'menuitem');
+        item.textContent = 'Delete';
+        item.addEventListener('click', () => {
+          menu.remove();
+          row?.remove();
+        });
+        menu.append(item);
+        document.body.append(menu);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Threadsweep</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0b0f;
+        --card: #141419;
+        --card2: #1a1a21;
+        --border: #27272a;
+        --ink: #ceced3;
+        --muted: #a1a1aa;
+        --faint: #74747f;
+        --accent: #f97316;
+        --danger: #ef4444;
+      }
+      * { box-sizing: border-box; }
+      body {
+        width: 320px;
+        margin: 0;
+        padding: 14px;
+        background: var(--bg);
+        color: var(--ink);
+        font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+      h1 { margin: 0; font-size: 15px; letter-spacing: -0.01em; }
+      .tag { color: var(--faint); font-size: 11px; }
+      .status { margin: 0 0 10px; color: var(--muted); }
+      .status strong { color: var(--ink); }
+      button {
+        width: 100%;
+        min-height: 34px;
+        margin-bottom: 6px;
+        padding: 0 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--card2);
+        color: var(--ink);
+        font: inherit;
+        cursor: pointer;
+        text-align: left;
+      }
+      button:hover:not(:disabled) { background: #23232b; border-color: #3f3f46; }
+      button:disabled { opacity: 0.45; cursor: not-allowed; }
+      button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; text-align: center; }
+      button.danger { background: var(--danger); border-color: var(--danger); color: var(--bg); font-weight: 600; text-align: center; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+      .grid button { margin-bottom: 0; }
+      .divider { height: 1px; margin: 10px 0; background: var(--border); }
+      .notes { margin: 0; padding-left: 16px; color: var(--faint); font-size: 11px; }
+      .notes li { margin-bottom: 5px; }
+      footer { margin-top: 10px; color: var(--faint); font-size: 11px; }
+      [hidden] { display: none !important; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Threadsweep</h1>
+      <span class="tag" id="platform">checking…</span>
+    </header>
+
+    <p class="status" id="status" role="status" aria-live="polite">Looking for a supported chat…</p>
+
+    <div id="modes"></div>
+
+    <div class="grid" id="quick" hidden>
+      <button type="button" id="select-all">Select all</button>
+      <button type="button" id="clear">Clear</button>
+    </div>
+
+    <div id="apply-wrap" hidden>
+      <div class="divider"></div>
+      <button type="button" id="apply" class="primary">Review selection…</button>
+    </div>
+
+    <div class="divider"></div>
+    <ul class="notes" id="notices"></ul>
+    <footer>Runs entirely in this tab. No network requests, no telemetry.</footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
