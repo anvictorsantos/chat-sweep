@@ -75,6 +75,21 @@ upload. Requires the `zip` binary.
 
 Escape closes the dialog, then leaves selection mode.
 
+### When a batch fails
+
+Every attempt reports *why*, so a failed run reads like
+`Deleted 0 of 47 conversations. No row menu button could be found (every attempt).`
+
+The row menu is found two ways: by accessible name (`aria-haspopup`, "options",
+"more") and, when that name is gone, **by geometry** — the small control inside
+the row's box, preferring the trailing edge. If the menu opens but has no Delete
+entry, or the confirmation never appears, the toast says which of those it was.
+
+For anything that still fails: open the extension toolbar button → **Copy
+diagnostics**. It copies the platform, the counts, the failure reason per row and
+a short structural note (`<li role=- controls=2>`) or the menu's item labels.
+There is no conversation content in it beyond the row titles you selected.
+
 ## Permissions
 
 | Permission | Why |
@@ -88,11 +103,11 @@ permission beyond what `activeTab`-style messaging needs.
 
 ## Known limits
 
-- **Selectors drift.** The overlay finds messages and rows by DOM structure that
-  ChatGPT and Claude change without notice. A broken selector shows "No messages
-  found" instead of doing something wrong. Set `threadsweep:debug` to `true` in
-  extension storage to get `[threadsweep]` console lines naming the lookup that
-  failed. See `CONTRIBUTING.md`.
+- **Selectors drift, and a run can fail.** Nothing about a failed attempt is
+  guessed: the toast names the step that broke (trigger not found, menu did not
+  open, no Delete entry, confirmation missing, row still listed) and the popup
+  copies a diagnostics blob. Set `threadsweep:debug` to `true` in extension
+  storage for `[threadsweep]` console lines. See `CONTRIBUTING.md`.
 - **Only the loaded part of a sidebar is selectable**, because only that is in
   the DOM. Scroll the history list first.
 - **Hidden messages come back on reload**, and the site keeps re-rendering while
@@ -126,8 +141,10 @@ npm run verify:all  # all of the above
 `npm run smoke` is the one that proves the bundle runs: it serves a fixture that
 mimics ChatGPT's DOM at `chatgpt.com` (self-signed TLS), loads `dist/chrome`,
 then clicks badges, shift-ranges, opens both confirmation dialogs, hides,
-undoes, and deletes three fake conversations through a fake site menu. It needs
-Chrome and `python3`. Set `CHROME_PATH` to point elsewhere.
+undoes, and deletes conversations through a fake site menu — including a row
+whose trigger has **no accessible name** (geometry path) and a row that cannot be
+driven at all (failure reporting). It needs Chrome and `python3`. Set
+`CHROME_PATH` to point elsewhere.
 
 ## Privacy
 

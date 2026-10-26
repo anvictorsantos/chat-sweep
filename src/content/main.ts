@@ -4,11 +4,14 @@
  *
  * Nothing here reaches the network. Selection, hiding and clipboard export are
  * local; conversation deletion is a scripted click on the site's own controls.
+ * Every failure is recorded with a reason so a broken selector surfaces as a
+ * sentence a person can act on, not as "47 could not be confirmed".
  */
 
 import { resolveAdapter } from '../adapters/registry.ts';
 import { sleep } from '../adapters/dom.ts';
-import type { Adapter, AdapterItem, Surface } from '../adapters/types.ts';
+import type { Adapter, AdapterItem, RemoveResult, Surface } from '../adapters/types.ts';
+import { describeFailures, type RemoveFailure } from '../core/failure.ts';
 import { hide } from '../core/hide.ts';
 import { markdownOf } from '../core/transcript.ts';
 import { api } from '../shared/browser.ts';
@@ -24,6 +27,22 @@ import {
 const ROOT_FLAG = 'data-threadsweep-root';
 const REFRESH_DEBOUNCE_MS = 400;
 const DELETE_GAP_MS = 180;
+
+interface FailureNote {
+  readonly label: string;
+  readonly reason: RemoveFailure;
+  readonly detail: string;
+}
+
+interface LastRun {
+  readonly at: string;
+  readonly summary: string;
+  readonly attempted: number;
+  readonly deleted: number;
+  readonly failures: readonly FailureNote[];
+}
+
+let lastRun: LastRun | null = null;
 
 function surfaceFor(adapter: Adapter, mode: Mode): Surface | null {
   return (mode === 'thread' ? adapter.thread : adapter.history) ?? null;
@@ -62,6 +81,10 @@ async function copyExcluding(
   return `Copied ${kept} of ${entries.length} messages to the clipboard, without the ${excluded.length} selected.`;
 }
 
+function capitalise(value: string): string {
+  return value.length === 0 ? value : `${value[0]?.toUpperCase() ?? ''}${value.slice(1)}`;
+}
+
 async function execute(
   adapter: Adapter,
   request: RunRequest,
@@ -71,16 +94,19 @@ async function execute(
   const surface = surfaceFor(adapter, request.mode);
   if (surface === null) throw new Error('that list is not available on this page');
 
-  const available = new Map(surface.items(document).map((item) => [item.id, item]));
-  const targets = request.ids
-    .map((id) => available.get(id))
-    .filter((item): item is AdapterItem => item !== undefined);
-
-  if (targets.length === 0) throw new Error('the selected items are no longer on the page');
+  const total = request.ids.length;
+  const snapshot = new Map(surface.items(document).map((item) => [item.id, item]));
 
   if (request.strategy === 'hide') {
+    const targets = request.ids
+      .map((id) => surface.resolve?.(id, document) ?? snapshot.get(id) ?? null)
+      .filter((item): item is AdapterItem => item !== null);
+
+    if (targets.length === 0) throw new Error('the selected messages are no longer on the page');
+
     const restore = hide(targets.map((item) => item.element));
     onProgress(targets.length, targets.length);
+    lastRun = null;
     return {
       completed: targets.length,
       failed: 0,
@@ -91,39 +117,69 @@ async function execute(
   }
 
   let completed = 0;
-  const failures: string[] = [];
+  const failures: FailureNote[] = [];
 
-  for (const item of targets) {
+  for (const id of request.ids) {
     if (signal.aborted) break;
-    let removed = false;
-    try {
-      removed = await surface.remove(item, signal);
-    } catch (error) {
-      debug('delete failed', error);
+
+    // Re-resolve: sidebars re-render, so the element captured at selection time
+    // is frequently detached by the time its turn comes.
+    const item = surface.resolve?.(id, document) ?? snapshot.get(id) ?? null;
+    if (item === null) {
+      failures.push({ label: id, reason: 'row-remains', detail: 'row no longer present' });
+      onProgress(completed + failures.length, total);
+      continue;
     }
-    if (removed) {
+
+    let result: RemoveResult;
+    try {
+      result = await surface.remove(item, signal);
+    } catch (error) {
+      result = {
+        ok: false,
+        failure: 'row-remains',
+        detail: error instanceof Error ? error.message : 'remove threw',
+      };
+    }
+
+    if (result.ok) {
       completed += 1;
     } else {
-      failures.push(item.label);
+      failures.push({
+        label: item.label,
+        reason: result.failure ?? 'row-remains',
+        detail: result.detail ?? '',
+      });
     }
-    onProgress(completed + failures.length, targets.length);
+
+    onProgress(completed + failures.length, total);
     if (!signal.aborted) await sleep(DELETE_GAP_MS, signal);
   }
 
-  const aborted = signal.aborted && completed + failures.length < targets.length;
+  const aborted = signal.aborted;
   const noun = request.mode === 'thread' ? 'message' : 'conversation';
   const nounPlural = `${noun}s`;
+  const described = describeFailures(failures.map((failure) => failure.reason));
 
   let summary: string;
   if (aborted) {
-    summary = `Stopped after ${completed} of ${targets.length} ${nounPlural}.`;
+    summary = `Stopped after ${completed} of ${total} ${nounPlural}.`;
   } else if (failures.length === 0) {
     summary = `Deleted ${completed} ${completed === 1 ? noun : nounPlural} with ${adapter.name}'s own delete action.`;
   } else {
-    summary = `Deleted ${completed} of ${targets.length} ${nounPlural}. ${failures.length} could not be confirmed — ${failures
-      .slice(0, 2)
-      .join('; ')}.`;
+    summary = `Deleted ${completed} of ${total} ${nounPlural}. ${capitalise(
+      described ?? 'the rest failed',
+    )}. Open the Threadsweep button → Diagnostics for the detail.`;
   }
+
+  debug('run finished', summary);
+  lastRun = {
+    at: new Date().toISOString(),
+    summary,
+    attempted: total,
+    deleted: completed,
+    failures: failures.slice(0, 8),
+  };
 
   return { completed, failed: failures.length, aborted, summary };
 }
@@ -160,6 +216,7 @@ async function start(): Promise<void> {
     modes: modesFor(adapter),
     notices: adapter.notices,
     unsupportedReason: adapter.unsupportedReason ?? null,
+    lastRun,
     ...overlay.status(),
   });
 

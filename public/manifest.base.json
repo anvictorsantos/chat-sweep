@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Threadsweep",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Select many chat messages or conversations at once, then delete or hide them behind an explicit, typed confirmation.",
   "minimum_chrome_version": "116",
   "permissions": ["storage", "clipboardWrite"],

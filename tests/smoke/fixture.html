@@ -8,9 +8,12 @@
       nav { width: 260px; padding: 12px; border-right: 1px solid #ddd; }
       nav ul { list-style: none; margin: 0; padding: 0; }
       nav li { display: flex; gap: 4px; align-items: center; margin-bottom: 6px; }
+      nav a { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      nav button { flex: 0 0 auto; width: 24px; height: 24px; padding: 0; }
       main { padding: 12px; flex: 1; }
       article { border: 1px solid #ddd; margin-bottom: 8px; padding: 8px; }
       [role="menu"] { position: fixed; top: 10px; right: 10px; background: #fff; border: 1px solid #999; padding: 6px; }
+      [role="dialog"] { position: fixed; top: 80px; right: 10px; background: #fff; border: 1px solid #999; padding: 10px; }
     </style>
     <script>
       // Stand-in for the extension runtime so the built content script can be
@@ -32,9 +35,25 @@
   <body>
     <nav aria-label="Chat history">
       <ul id="rows">
-        <li><a href="/c/one">Conversation one</a><button type="button" aria-label="Open conversation options">⋯</button></li>
-        <li><a href="/c/two">Conversation two</a><button type="button" aria-label="Open conversation options">⋯</button></li>
-        <li><a href="/c/three">Conversation three</a><button type="button" aria-label="Open conversation options">⋯</button></li>
+        <!-- Named trigger: the selector path should find it. -->
+        <li data-mode="named">
+          <a href="/c/one">Conversation one</a>
+          <button type="button" aria-label="Open conversation options">⋯</button>
+        </li>
+        <!-- Geometry-only trigger: no accessible name, no aria-haspopup. -->
+        <li data-mode="anonymous">
+          <a href="/c/two">Conversation two</a>
+          <button type="button" class="icon-only">⋯</button>
+        </li>
+        <li data-mode="anonymous">
+          <a href="/c/three">Conversation three</a>
+          <button type="button" class="icon-only">⋯</button>
+        </li>
+        <!-- Dead row: clicking does nothing, so the run must report why. -->
+        <li data-mode="dead">
+          <a href="/c/four">Conversation four</a>
+          <button type="button" class="icon-only">⋯</button>
+        </li>
       </ul>
     </nav>
 
@@ -53,27 +72,59 @@
     <pre id="smoke-result" data-smoke="pending">pending</pre>
 
     <script>
-      // Fake the platform's conversation menu: options button -> menu -> Delete.
+      // Fake the platform's conversation menu. Two menu shapes on purpose:
+      // a named item ("Delete") and a longer one ("Delete chat"). The delete
+      // path always goes through a confirmation dialog, like the real sites.
       document.addEventListener('click', (event) => {
-        const trigger = event.target.closest?.('[aria-label^="Open conversation options"]');
+        const trigger = event.target.closest?.('nav button');
         if (trigger === null || trigger === undefined) return;
 
-        for (const existing of document.querySelectorAll('[role="menu"]')) existing.remove();
+        for (const existing of document.querySelectorAll('[role="menu"], [role="dialog"]')) {
+          existing.remove();
+        }
 
         const row = trigger.closest('li');
+        if (row?.dataset.mode === 'dead') return;
+
+        const label = row?.dataset.mode === 'named' ? 'Delete' : 'Delete chat';
+
         const menu = document.createElement('div');
         menu.setAttribute('role', 'menu');
-        const item = document.createElement('button');
-        item.type = 'button';
-        item.setAttribute('role', 'menuitem');
-        item.textContent = 'Delete';
-        item.addEventListener('click', () => {
-          menu.remove();
-          row?.remove();
-        });
-        menu.append(item);
+        for (const text of ['Copy link', 'Rename', label]) {
+          const item = document.createElement('button');
+          item.type = 'button';
+          item.setAttribute('role', 'menuitem');
+          item.textContent = text;
+          item.addEventListener('click', () => {
+            menu.remove();
+            if (text === label) openConfirm(row);
+          });
+          menu.append(item);
+        }
         document.body.append(menu);
       });
+
+      function openConfirm(row) {
+        const dialog = document.createElement('div');
+        dialog.setAttribute('role', 'dialog');
+        dialog.append('Delete this conversation?');
+
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.textContent = 'Cancel';
+        cancel.addEventListener('click', () => dialog.remove());
+
+        const confirm = document.createElement('button');
+        confirm.type = 'button';
+        confirm.textContent = 'Delete';
+        confirm.addEventListener('click', () => {
+          dialog.remove();
+          row?.remove();
+        });
+
+        dialog.append(cancel, confirm);
+        document.body.append(dialog);
+      }
     </script>
   </body>
 </html>

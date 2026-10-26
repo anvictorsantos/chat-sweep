@@ -8,6 +8,7 @@
  * `core/plan.ts` has to say so.
  */
 
+import type { RemoveFailure } from '../core/failure.ts';
 import type { TranscriptRole } from '../core/transcript.ts';
 
 export type PlatformId = 'chatgpt' | 'claude' | 'cursor';
@@ -21,13 +22,25 @@ export interface AdapterItem {
   readonly text: string;
 }
 
+export interface RemoveResult {
+  readonly ok: boolean;
+  readonly failure?: RemoveFailure;
+  /** Structural note for the diagnostics blob. Never conversation text. */
+  readonly detail?: string;
+}
+
 export interface Surface {
   readonly kind: 'native' | 'view-only';
   /** What this surface lists, e.g. "conversations in the sidebar". */
   readonly label: string;
   items(root: ParentNode): AdapterItem[];
-  /** Resolve and drive the platform's own delete action. Reports success. */
-  remove(item: AdapterItem, signal: AbortSignal): Promise<boolean>;
+  /**
+   * Re-read one item by id. Sidebars re-render, so the element captured when
+   * the selection was made is often detached by the time deletion runs.
+   */
+  resolve?(id: string, root: ParentNode): AdapterItem | null;
+  /** Resolve and drive the platform's own delete action. */
+  remove(item: AdapterItem, signal: AbortSignal): Promise<RemoveResult>;
 }
 
 export interface Adapter {

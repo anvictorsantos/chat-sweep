@@ -8,12 +8,27 @@ import { api } from '../shared/browser.ts';
 
 type Mode = 'thread' | 'history';
 
+interface FailureNote {
+  readonly label: string;
+  readonly reason: string;
+  readonly detail: string;
+}
+
+interface LastRun {
+  readonly at: string;
+  readonly summary: string;
+  readonly attempted: number;
+  readonly deleted: number;
+  readonly failures: readonly FailureNote[];
+}
+
 interface TabStatus {
   readonly platform: string;
   readonly supported: boolean;
   readonly modes: readonly Mode[];
   readonly notices: readonly string[];
   readonly unsupportedReason: string | null;
+  readonly lastRun: LastRun | null;
   readonly active: boolean;
   readonly mode: Mode | null;
   readonly count: number;
@@ -31,6 +46,9 @@ const applyButton = byId<HTMLButtonElement>('apply');
 const selectAllButton = byId<HTMLButtonElement>('select-all');
 const clearButton = byId<HTMLButtonElement>('clear');
 const notices = byId<HTMLUListElement>('notices');
+const diagWrap = byId<HTMLDivElement>('diag-wrap');
+const diagSummary = byId<HTMLParagraphElement>('diag-summary');
+const copyDiagButton = byId<HTMLButtonElement>('copy-diag');
 
 let current: TabStatus | null = null;
 
@@ -57,6 +75,26 @@ async function refresh(type: string, mode?: Mode): Promise<void> {
   render();
 }
 
+function diagnosticsText(): string | null {
+  const status = current;
+  if (status === null || status.lastRun === null) return null;
+
+  const { lastRun } = status;
+  const lines = [
+    `Threadsweep diagnostics — ${status.platform}`,
+    `when: ${lastRun.at}`,
+    `result: ${lastRun.deleted} of ${lastRun.attempted} deleted`,
+    `summary: ${lastRun.summary}`,
+    'failures:',
+    ...lastRun.failures.map(
+      (failure) =>
+        `- ${failure.reason} | ${failure.detail || 'no detail'} | ${failure.label.slice(0, 60)}`,
+    ),
+  ];
+
+  return lines.join('\n');
+}
+
 function render(): void {
   const status = current;
 
@@ -68,6 +106,7 @@ function render(): void {
     modesBox?.replaceChildren();
     if (quickBox !== null) quickBox.hidden = true;
     if (applyWrap !== null) applyWrap.hidden = true;
+    if (diagWrap !== null) diagWrap.hidden = true;
     if (notices !== null) notices.replaceChildren();
     return;
   }
@@ -117,6 +156,13 @@ function render(): void {
     applyButton.textContent = status.mode === 'thread' ? 'Hide selected…' : 'Delete selected…';
   }
 
+  const hasFailures = status.lastRun !== null && status.lastRun.failures.length > 0;
+  if (diagWrap !== null) diagWrap.hidden = !hasFailures;
+  if (diagSummary !== null && status.lastRun !== null && hasFailures) {
+    diagSummary.textContent = status.lastRun.summary;
+  }
+  if (copyDiagButton !== null) copyDiagButton.textContent = 'Copy diagnostics';
+
   if (notices !== null) {
     notices.replaceChildren();
     for (const note of status.notices) {
@@ -132,6 +178,17 @@ clearButton?.addEventListener('click', () => void refresh('threadsweep:clear'));
 applyButton?.addEventListener('click', async () => {
   await refresh('threadsweep:apply');
   window.close();
+});
+
+copyDiagButton?.addEventListener('click', async () => {
+  const text = diagnosticsText();
+  if (text === null) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    if (copyDiagButton !== null) copyDiagButton.textContent = 'Copied';
+  } catch {
+    if (copyDiagButton !== null) copyDiagButton.textContent = 'Copy failed';
+  }
 });
 
 void refresh('threadsweep:status');

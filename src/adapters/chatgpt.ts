@@ -2,15 +2,20 @@ import { snippet } from '../core/transcript.ts';
 import { collect, driveMenuDelete, normalizeLabel, textOf } from './dom.ts';
 import { matchesHost, type Adapter, type AdapterItem, type Surface } from './types.ts';
 
-const HOSTS = [
-  'chatgpt.com',
-  'chat.openai.com',
-  'chatgpt.com.',
-  'www.chatgpt.com',
-];
+const HOSTS = ['chatgpt.com', 'www.chatgpt.com', 'chat.openai.com'];
 
 /** Each turn is an <article data-testid="conversation-turn-N"> with the role inside. */
 const TURN_SELECTORS = ['article[data-testid^="conversation-turn"]', 'article'];
+
+/** Named first; geometry is the fallback inside the driver. */
+const TRIGGER_SELECTORS = [
+  'button[aria-haspopup="menu"]',
+  '[role="button"][aria-haspopup="menu"]',
+  'button[aria-label*="options" i]',
+  '[role="button"][aria-label*="options" i]',
+  'button[aria-label*="more" i]',
+  'button[data-testid*="option" i]',
+];
 
 function turnId(element: HTMLElement, index: number): string {
   const testId = element.dataset['testid'];
@@ -48,9 +53,13 @@ const thread: Surface = {
     });
   },
   async remove() {
-    return false;
+    return { ok: false, failure: 'no-trigger', detail: 'platform has no per-message delete' };
   },
 };
+
+function rowFor(anchor: HTMLElement): HTMLElement {
+  return anchor.closest('li') ?? anchor.parentElement ?? anchor;
+}
 
 const history: Surface = {
   kind: 'native',
@@ -63,12 +72,11 @@ const history: Surface = {
       const href = anchor.getAttribute('href');
       if (href === null || seen.has(href)) continue;
       seen.add(href);
-      const row = anchor.closest('li') ?? anchor.parentElement ?? anchor;
       const title = normalizeLabel(textOf(anchor));
       rows.push({
         id: href,
         label: title.length > 0 ? title : 'Untitled conversation',
-        element: row,
+        element: rowFor(anchor),
         role: 'unknown',
         text: title,
       });
@@ -76,20 +84,27 @@ const history: Surface = {
 
     return rows;
   },
+  resolve(id, root) {
+    const anchor = Array.from(
+      root.querySelectorAll<HTMLElement>('nav a[href^="/c/"], a[href^="/c/"]'),
+    ).find((candidate) => candidate.getAttribute('href') === id);
+    if (anchor === undefined || anchor === null) return null;
+    const title = normalizeLabel(textOf(anchor));
+    return {
+      id,
+      label: title.length > 0 ? title : 'Untitled conversation',
+      element: rowFor(anchor),
+      role: 'unknown',
+      text: title,
+    };
+  },
   async remove(item, signal) {
     return driveMenuDelete({
       row: item.element,
       platform: 'chatgpt',
-      menuButtonSelectors: [
-        'button[aria-label^="Open conversation options" i]',
-        'button[data-testid$="-options"]',
-        'button[aria-haspopup="menu"]',
-        'button[aria-label*="options" i]',
-      ],
-      menuSelectors: ['[role="menu"]', '[data-radix-menu-content]'],
-      itemSelectors: ['[role="menuitem"]', '[role="menuitemcheckbox"]'],
-      deleteLabel: /^delete$/iu,
-      confirmLabel: /^delete/iu,
+      triggerSelectors: TRIGGER_SELECTORS,
+      deleteMatcher: /^delete\b/iu,
+      confirmMatcher: /^(delete|yes,?\s*delete)\b/iu,
       signal,
     });
   },

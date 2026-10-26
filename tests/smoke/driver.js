@@ -2,7 +2,8 @@
  * Drives the built Chrome bundle inside a fixture that mimics ChatGPT's DOM.
  * It exercises the real code paths: runtime messages from the popup, badge
  * clicks, shift ranges, select all, the confirmation dialog, hiding, undo and
- * the scripted conversation delete. No network, no helpers from src.
+ * the scripted conversation delete — including trigger discovery by geometry
+ * and the failure reasons when a row cannot be driven.
  */
 
 const result = document.getElementById('smoke-result');
@@ -46,7 +47,7 @@ async function main() {
   check('thread mode opens', status.active === true && status.mode === 'thread');
   check('three messages are selectable', shadow.querySelectorAll('.badge').length === 3);
 
-  let badges = shadow.querySelectorAll('.badge');
+  const badges = shadow.querySelectorAll('.badge');
   badges[0].click();
   check('clicking a badge selects one message', (await send('threadsweep:status')).count === 1);
   check('badge exposes pressed state', badges[0].getAttribute('aria-pressed') === 'true');
@@ -96,16 +97,14 @@ async function main() {
 
   // ---- conversation deletion -------------------------------------------
   await send('threadsweep:open', 'history');
-  status = await send('threadsweep:status');
-  check('history mode lists the sidebar conversations', status.count === 0);
-  check('three conversations are selectable', shadow.querySelectorAll('.badge').length === 3);
+  check('four conversations are selectable', shadow.querySelectorAll('.badge').length === 4);
 
   await send('threadsweep:select-all');
-  check('select all selects every conversation', (await send('threadsweep:status')).count === 3);
+  check('select all selects every conversation', (await send('threadsweep:status')).count === 4);
 
   shadow.querySelector('[data-act="apply"]').click();
-  const dialogDelete = await waitForValue(() => shadow.querySelector('[data-el="dialog"]'));
-  check('the delete dialog is permanent', dialogDelete.textContent.includes('permanently deleted'));
+  const deleteDialog = await waitForValue(() => shadow.querySelector('[data-el="dialog"]'));
+  check('the delete dialog is permanent', deleteDialog.textContent.includes('permanently deleted'));
 
   const deleteConfirm = shadow.querySelector('[data-act="confirm"]');
   check('delete confirm starts disabled', deleteConfirm.disabled === true);
@@ -119,12 +118,36 @@ async function main() {
   check('phrase plus acknowledgement unlocks delete', deleteConfirm.disabled === false);
 
   deleteConfirm.click();
-  await waitForValue(() => document.querySelectorAll('#rows li').length === 0, 20000);
 
-  check('all conversations were removed through the site menu', document.querySelectorAll('#rows li').length === 0);
+  // Named trigger, geometry-only trigger, and the confirm dialog must all work;
+  // the dead row must fail and leave exactly one conversation behind.
+  await waitForValue(() => document.querySelectorAll('#rows li').length === 1, 25000);
+
   check(
-    'the toast reports the delete count',
-    (await waitForValue(() => shadow.querySelector('.toast')))?.textContent.includes('Deleted 3 conversations'),
+    'three of four conversations were removed through the site menu',
+    document.querySelectorAll('#rows li').length === 1,
+  );
+  check(
+    'the surviving conversation is the undrivable one',
+    document.querySelector('#rows li')?.dataset.mode === 'dead',
+  );
+
+  const toast = await waitForValue(() => shadow.querySelector('.toast'));
+  check('the toast reports the real counts', toast.textContent.includes('Deleted 3 of 4 conversations'));
+  check(
+    'the toast names the failure reason',
+    toast.textContent.includes('did not open'),
+  );
+
+  // ---- diagnostics ------------------------------------------------------
+  status = await send('threadsweep:status');
+  check('the last run is exposed to the popup', status.lastRun !== null);
+  check('the run counted three deletions', status.lastRun.deleted === 3);
+  check('the failed row carries a machine reason', status.lastRun.failures[0]?.reason === 'menu-unopened');
+  check(
+    'the failure note names the row, not its content',
+    typeof status.lastRun.failures[0]?.label === 'string' &&
+      status.lastRun.failures[0].label.length > 0,
   );
 
   result.dataset.smoke = 'pass';

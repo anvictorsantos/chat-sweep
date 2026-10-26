@@ -11,6 +11,14 @@ const MESSAGE_SELECTORS = [
   '.font-claude-message',
 ];
 
+const TRIGGER_SELECTORS = [
+  'button[aria-haspopup="menu"]',
+  '[role="button"][aria-haspopup="menu"]',
+  'button[aria-label*="more" i]',
+  'button[aria-label*="options" i]',
+  '[data-testid$="menu"]',
+];
+
 const thread: Surface = {
   kind: 'view-only',
   label: 'messages in this conversation',
@@ -37,9 +45,13 @@ const thread: Surface = {
     });
   },
   async remove() {
-    return false;
+    return { ok: false, failure: 'no-trigger', detail: 'platform has no per-message delete' };
   },
 };
+
+function rowFor(anchor: HTMLElement): HTMLElement {
+  return anchor.closest('li') ?? anchor.parentElement ?? anchor;
+}
 
 const history: Surface = {
   kind: 'native',
@@ -52,12 +64,11 @@ const history: Surface = {
       const href = anchor.getAttribute('href');
       if (href === null || seen.has(href)) continue;
       seen.add(href);
-      const row = anchor.closest('li') ?? anchor.parentElement ?? anchor;
       const title = normalizeLabel(textOf(anchor));
       rows.push({
         id: href,
         label: title.length > 0 ? title : 'Untitled conversation',
-        element: row,
+        element: rowFor(anchor),
         role: 'unknown',
         text: title,
       });
@@ -65,21 +76,27 @@ const history: Surface = {
 
     return rows;
   },
+  resolve(id, root) {
+    const anchor = Array.from(
+      root.querySelectorAll<HTMLElement>('nav a[href^="/chat/"], a[href^="/chat/"]'),
+    ).find((candidate) => candidate.getAttribute('href') === id);
+    if (anchor === undefined || anchor === null) return null;
+    const title = normalizeLabel(textOf(anchor));
+    return {
+      id,
+      label: title.length > 0 ? title : 'Untitled conversation',
+      element: rowFor(anchor),
+      role: 'unknown',
+      text: title,
+    };
+  },
   async remove(item, signal) {
     return driveMenuDelete({
       row: item.element,
       platform: 'claude',
-      menuButtonSelectors: [
-        'button[aria-label*="more options" i]',
-        'button[aria-label*="options" i]',
-        'button[data-testid$="menu"]',
-        '[role="button"][aria-label*="more" i]',
-        'button[aria-haspopup="menu"]',
-      ],
-      menuSelectors: ['[role="menu"]', '[data-radix-menu-content]'],
-      itemSelectors: ['[role="menuitem"]'],
-      deleteLabel: /^delete$/iu,
-      confirmLabel: /^delete$/iu,
+      triggerSelectors: TRIGGER_SELECTORS,
+      deleteMatcher: /^delete\b/iu,
+      confirmMatcher: /^delete\b/iu,
       signal,
     });
   },

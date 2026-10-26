@@ -43,6 +43,22 @@ If the overlay mounts but finds nothing, the shape of the DOM moved:
    add an assertion to `tests/smoke/driver.js` if the behaviour changed.
 5. Run `npm run verify:all` before opening the PR.
 
+If deletions fail, the reason tells you which step to fix — do not widen the
+confirmation or retry blindly:
+
+| Reason | Where to look |
+| --- | --- |
+| `no-trigger` | Row shape, or `pickTrigger` weights in `src/core/geometry.ts` |
+| `menu-unopened` | The trigger is not the row's menu, or the menu is a portal we do not match in `findOpenMenu` |
+| `no-menu-item` | `deleteMatcher` vs the menu's actual labels (shown in diagnostics) |
+| `unconfirmed` | `confirmMatcher` or the dialog's `role` |
+| `row-remains` | Delete was clicked but the list did not update; check for a second confirmation step |
+
+`findTrigger` tries named selectors first and geometry second. When adding a
+platform, prefer selectors; the geometry fallback exists for renames, not as the
+primary path. Geometry tuning is unit tested in `src/core/geometry.test.ts`, so
+change weights there with a test that states the new precedence.
+
 ## Adding a platform
 
 1. `src/adapters/<platform>.ts` exporting a `Adapter` with `matches`, `notices`,

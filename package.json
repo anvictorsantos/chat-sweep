@@ -1,6 +1,6 @@
 {
   "name": "threadsweep",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Multi-select chat messages and conversations in ChatGPT and Claude, then delete or hide them behind an explicit confirmation. Chrome and Firefox.",

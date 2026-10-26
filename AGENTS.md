@@ -49,6 +49,15 @@ Rules:
 
 - A new platform is a new file in `src/adapters/` plus a registry entry plus a
   `matches` test. Nothing else.
+- **A failed scripted action returns a reason.** `RemoveResult.failure` comes
+  from `src/core/failure.ts`; a bare `false` or a generic "could not be
+  confirmed" is a bug. The user has to be able to tell whether the row menu was
+  missing, the menu opened without a Delete entry, or the row survived the
+  click, and the popup must be able to copy that detail.
+- **Discovery goes named first, geometry second.** `findTrigger` prefers
+  selectors and falls back to `pickTrigger` in `src/core/geometry.ts`. Do not
+  remove the fallback and do not rely on CSS `:hover`, which cannot be
+  simulated.
 - A new surface variant is a new `kind`, and `core/plan.ts` must grow matching
   copy for it — the switch is exhaustive by type, so it will not compile
   otherwise.
