@@ -3,4 +3,4 @@ dist/
 *.zip
 .DS_Store
 *.log
-Icon?
+Icon[[:cntrl:]]
