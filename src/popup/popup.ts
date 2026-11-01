@@ -81,7 +81,7 @@ function diagnosticsText(): string | null {
 
   const { lastRun } = status;
   const lines = [
-    `Threadsweep diagnostics — ${status.platform}`,
+    `Chat Sweep diagnostics — ${status.platform}`,
     `when: ${lastRun.at}`,
     `result: ${lastRun.deleted} of ${lastRun.attempted} deleted`,
     `summary: ${lastRun.summary}`,
@@ -101,7 +101,7 @@ function render(): void {
   if (status === null) {
     if (platformTag !== null) platformTag.textContent = 'unsupported page';
     if (statusLine !== null) {
-      statusLine.textContent = 'Open a ChatGPT, Claude or Cursor tab to use Threadsweep.';
+      statusLine.textContent = 'Open a ChatGPT, Claude or Cursor tab to use Chat Sweep.';
     }
     modesBox?.replaceChildren();
     if (quickBox !== null) quickBox.hidden = true;
@@ -140,7 +140,7 @@ function render(): void {
         ? `Stop selecting ${mode === 'thread' ? 'messages' : 'conversations'}`
         : `Select ${mode === 'thread' ? 'messages' : 'conversations'}`;
       button.addEventListener('click', async () => {
-        await refresh('threadsweep:open', mode);
+        await refresh('chat-sweep:open', mode);
         window.close();
       });
       modesBox.append(button);
@@ -173,10 +173,10 @@ function render(): void {
   }
 }
 
-selectAllButton?.addEventListener('click', () => void refresh('threadsweep:select-all'));
-clearButton?.addEventListener('click', () => void refresh('threadsweep:clear'));
+selectAllButton?.addEventListener('click', () => void refresh('chat-sweep:select-all'));
+clearButton?.addEventListener('click', () => void refresh('chat-sweep:clear'));
 applyButton?.addEventListener('click', async () => {
-  await refresh('threadsweep:apply');
+  await refresh('chat-sweep:apply');
   window.close();
 });
 
@@ -191,4 +191,4 @@ copyDiagButton?.addEventListener('click', async () => {
   }
 });
 
-void refresh('threadsweep:status');
+void refresh('chat-sweep:status');

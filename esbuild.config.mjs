@@ -23,7 +23,7 @@ function firefoxManifest(base) {
   delete manifest.minimum_chrome_version;
   manifest.browser_specific_settings = {
     gecko: {
-      id: 'threadsweep@pontes.dev',
+      id: 'chat-sweep@pontes.dev',
       strict_min_version: '121.0',
     },
   };
@@ -45,7 +45,7 @@ for (const target of targets) {
     legalComments: 'none',
     logLevel: 'warning',
     banner: {
-      js: '/* Threadsweep — local-only chat selection. No network, no telemetry. */',
+      js: '/* Chat Sweep — local-only chat selection. No network, no telemetry. */',
     },
   });
 

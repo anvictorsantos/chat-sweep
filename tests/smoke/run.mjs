@@ -53,7 +53,7 @@ if (!existsSync(bundle)) {
 }
 
 const port = await freePort();
-const workspace = await mkdtemp(join(tmpdir(), 'threadsweep-smoke-'));
+const workspace = await mkdtemp(join(tmpdir(), 'chat-sweep-smoke-'));
 const certFile = join(workspace, 'cert.pem');
 const keyFile = join(workspace, 'key.pem');
 

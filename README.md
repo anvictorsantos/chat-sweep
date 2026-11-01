@@ -1,7 +1,13 @@
-# Threadsweep
+<p align="center">
+  <img src="assets/icon.png" width="140" alt="Chat Sweep icon">
+</p>
 
-Select many chat conversations — or many messages inside one — then delete them
-behind a confirmation that says exactly what will happen.
+<h1 align="center">Chat Sweep</h1>
+
+<p align="center">
+  Select many chat conversations — or many messages inside one — then delete them behind a
+  confirmation that says exactly what will happen.
+</p>
 
 A Chrome/Firefox extension (Manifest V3, no build-time framework, no network
 access) for **ChatGPT** and **Claude**. Cursor is recognised and explained, not
@@ -63,13 +69,13 @@ npm run build
   if the toolbar reports the extension cannot run, allow access for the site in
   the extension's permissions panel.
 
-`npm run zip` produces `dist/threadsweep-<version>-{chrome,firefox}.zip` for a
+`npm run zip` produces `dist/chat-sweep-<version>-{chrome,firefox}.zip` for a
 store upload. Requires the `zip` binary.
 
 ## Use
 
 1. Open a conversation or your chat history on a supported site.
-2. Click the Threadsweep toolbar button → *Select messages* or
+2. Click the Chat Sweep toolbar button → *Select messages* or
    *Select conversations*.
 3. Click the checkbox badges next to items. Shift-click extends from the last
    clicked item; ⌘/Ctrl+A or *Select all* takes everything.
@@ -100,7 +106,7 @@ There is no conversation content in it beyond the row titles you selected.
 | Permission | Why |
 | --- | --- |
 | `host_permissions` for chatgpt.com, chat.openai.com, claude.ai, cursor.com | Inject the selection overlay on those sites only |
-| `storage` | One optional debug flag (`threadsweep:debug`), nothing else is stored |
+| `storage` | One optional debug flag (`chat-sweep:debug`), nothing else is stored |
 | `clipboardWrite` | *Copy without selected* writes the transcript you asked for |
 
 No background service worker, no `scripting`, no `<all_urls>`, no `tabs`
@@ -111,8 +117,8 @@ permission beyond what `activeTab`-style messaging needs.
 - **Selectors drift, and a run can fail.** Nothing about a failed attempt is
   guessed: the toast names the step that broke (trigger not found, menu did not
   open, no Delete entry, confirmation missing, row still listed) and the popup
-  copies a diagnostics blob. Set `threadsweep:debug` to `true` in extension
-  storage for `[threadsweep]` console lines. See `CONTRIBUTING.md`.
+  copies a diagnostics blob. Set `chat-sweep:debug` to `true` in extension
+  storage for `[chat-sweep]` console lines. See `CONTRIBUTING.md`.
 - **Only the loaded part of a sidebar is selectable**, because only that is in
   the DOM. Scroll the history list first.
 - **Hidden messages come back on reload**, and the site keeps re-rendering while

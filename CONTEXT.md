@@ -166,7 +166,7 @@ lookup is a fallback chain because these shapes change without announcement.
 4. **Sequential, abortable.** One row at a time with a small gap; Stop wins.
 5. **Every failure has a reason**, and the user can copy it.
 6. **The host page is untouched** except the overlay host element and the
-   `data-threadsweep-hidden` attribute that undo removes.
+   `data-chat-sweep-hidden` attribute that undo removes.
 
 ## 11. Decisions and rejected alternatives
 
@@ -196,7 +196,7 @@ lookup is a fallback chain because these shapes change without announcement.
 - **Message-level delete** may ship on these platforms one day. The adapter
   contract already models it (`kind: 'native'`); no code assumes it will not.
 - **Claude's own multi-select** in the full Chats view overlaps with history mode.
-  The expectation is that Threadsweep is used from the sidebar, not from a page
+  The expectation is that Chat Sweep is used from the sidebar, not from a page
   that already has checkboxes.
 
 ## 13. Symptom → file

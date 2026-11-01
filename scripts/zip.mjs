@@ -15,10 +15,10 @@ const { version } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'
 
 for (const target of ['chrome', 'firefox']) {
   const source = join(root, 'dist', target);
-  const archive = join(root, 'dist', `threadsweep-${version}-${target}.zip`);
+  const archive = join(root, 'dist', `chat-sweep-${version}-${target}.zip`);
   try {
     await run('zip', ['-q', '-r', archive, '.'], { cwd: source });
-    console.log(`dist/threadsweep-${version}-${target}.zip`);
+    console.log(`dist/chat-sweep-${version}-${target}.zip`);
   } catch (error) {
     console.error(`could not zip ${target}:`, error instanceof Error ? error.message : error);
     process.exitCode = 1;

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Threadsweep",
+  "name": "Chat Sweep",
   "version": "0.1.1",
   "description": "Select many chat messages or conversations at once, then delete or hide them behind an explicit, typed confirmation.",
   "minimum_chrome_version": "116",
@@ -28,7 +28,7 @@
     }
   ],
   "action": {
-    "default_title": "Threadsweep",
+    "default_title": "Chat Sweep",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",

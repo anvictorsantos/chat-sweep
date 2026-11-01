@@ -4,7 +4,7 @@
  * platforms do not expose.
  */
 
-const HIDDEN_ATTR = 'data-threadsweep-hidden';
+const HIDDEN_ATTR = 'data-chat-sweep-hidden';
 
 export type Restore = () => void;
 

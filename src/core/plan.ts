@@ -44,11 +44,11 @@ export function buildConfirm(
     return {
       title: `Delete ${count} ${plural(count, 'conversation', 'conversations')}?`,
       lines: [
-        `Threadsweep will open ${platform}'s own menu on each selected conversation and use its Delete action, one conversation at a time.`,
+        `Chat Sweep will open ${platform}'s own menu on each selected conversation and use its Delete action, one conversation at a time.`,
         `This is the same action you would take by hand, so it is just as permanent. The conversations leave your account's history; ${platform} then applies its own backend deletion policy.`,
         'Anything you need from these conversations should be exported first.',
       ],
-      consequence: 'This cannot be undone from Threadsweep or from the site.',
+      consequence: 'This cannot be undone from Chat Sweep or from the site.',
       confirmLabel: `Delete ${count} ${plural(count, 'conversation', 'conversations')}`,
       cancelLabel: 'Cancel',
       requiredPhrase: CONFIRM_PHRASE,
@@ -61,7 +61,7 @@ export function buildConfirm(
     return {
       title: `Delete ${count} ${plural(count, 'message', 'messages')}?`,
       lines: [
-        `${platform} exposes a per-message Delete action, so Threadsweep will use it for each selected message.`,
+        `${platform} exposes a per-message Delete action, so Chat Sweep will use it for each selected message.`,
         'Deletion is permanent, and later replies that referenced the message stay as they are.',
       ],
       consequence: 'This cannot be undone.',
@@ -76,7 +76,7 @@ export function buildConfirm(
   return {
     title: `Hide ${count} ${plural(count, 'message', 'messages')} from view?`,
     lines: [
-      `${platform} has no per-message delete, so Threadsweep cannot remove a single message from the conversation.`,
+      `${platform} has no per-message delete, so Chat Sweep cannot remove a single message from the conversation.`,
       'Instead it removes the selected messages from what this tab renders, which is useful before a screenshot, a screen share or a demo.',
       'Nothing is deleted from your account. The conversation is unchanged for everyone else and for future sessions.',
     ],

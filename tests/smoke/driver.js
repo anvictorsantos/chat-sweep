@@ -38,27 +38,27 @@ function clickWithShift(element) {
 }
 
 async function main() {
-  const host = await waitForValue(() => document.querySelector('[data-threadsweep-root]'));
+  const host = await waitForValue(() => document.querySelector('[data-chat-sweep-root]'));
   const shadow = host.shadowRoot;
   check('overlay mounted a shadow root', shadow !== null);
 
   // ---- message selection ------------------------------------------------
-  let status = await send('threadsweep:open', 'thread');
+  let status = await send('chat-sweep:open', 'thread');
   check('thread mode opens', status.active === true && status.mode === 'thread');
   check('three messages are selectable', shadow.querySelectorAll('.badge').length === 3);
 
   const badges = shadow.querySelectorAll('.badge');
   badges[0].click();
-  check('clicking a badge selects one message', (await send('threadsweep:status')).count === 1);
+  check('clicking a badge selects one message', (await send('chat-sweep:status')).count === 1);
   check('badge exposes pressed state', badges[0].getAttribute('aria-pressed') === 'true');
 
   clickWithShift(badges[2]);
-  check('shift-click selects the range', (await send('threadsweep:status')).count === 3);
+  check('shift-click selects the range', (await send('chat-sweep:status')).count === 3);
 
-  await send('threadsweep:clear');
-  check('clear empties the selection', (await send('threadsweep:status')).count === 0);
+  await send('chat-sweep:clear');
+  check('clear empties the selection', (await send('chat-sweep:status')).count === 0);
 
-  status = await send('threadsweep:select-all');
+  status = await send('chat-sweep:select-all');
   check('select all selects every message', status.count === 3);
 
   // ---- hide confirmation ------------------------------------------------
@@ -96,7 +96,7 @@ async function main() {
   );
 
   // ---- conversation deletion -------------------------------------------
-  await send('threadsweep:open', 'history');
+  await send('chat-sweep:open', 'history');
   check('four conversations are selectable', shadow.querySelectorAll('.badge').length === 4);
 
   // The badge must sit level with the conversation title, not at the row's
@@ -118,8 +118,8 @@ async function main() {
     check(`history badge has no native title tooltip (${id})`, badge.getAttribute('title') === null);
   }
 
-  await send('threadsweep:select-all');
-  check('select all selects every conversation', (await send('threadsweep:status')).count === 4);
+  await send('chat-sweep:select-all');
+  check('select all selects every conversation', (await send('chat-sweep:status')).count === 4);
 
   shadow.querySelector('[data-act="apply"]').click();
   const deleteDialog = await waitForValue(() => shadow.querySelector('[data-el="dialog"]'));
@@ -159,7 +159,7 @@ async function main() {
   );
 
   // ---- diagnostics ------------------------------------------------------
-  status = await send('threadsweep:status');
+  status = await send('chat-sweep:status');
   check('the last run is exposed to the popup', status.lastRun !== null);
   check('the run counted three deletions', status.lastRun.deleted === 3);
   check('the failed row carries a machine reason', status.lastRun.failures[0]?.reason === 'menu-unopened');

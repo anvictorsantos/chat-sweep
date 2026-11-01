@@ -1,4 +1,4 @@
-# AGENTS.md — Threadsweep operating rules
+# AGENTS.md — Chat Sweep operating rules
 
 Applies to every agent and every task in this repository. `README.md` explains
 what the extension does and, more importantly, what each platform actually
@@ -74,7 +74,7 @@ Rules:
   anything the user must read before confirming. No duplicated copy.
 - The overlay stays inside a shadow root. Never inject a stylesheet, class or
   element into the host page; the host element and its shadow root are the only
-  permitted DOM additions, plus the `data-threadsweep-hidden` attribute used by
+  permitted DOM additions, plus the `data-chat-sweep-hidden` attribute used by
   hide/undo.
 - Accessibility is part of done: every control is a real `<button>`, states are
   exposed (`aria-pressed`, `aria-live`, `role="dialog"`), focus is restored, and
@@ -101,7 +101,7 @@ to make a check pass; fix the behaviour.
 
 When a site changes its DOM:
 
-1. Reproduce with `threadsweep:debug` set to `true` in extension storage.
+1. Reproduce with `chat-sweep:debug` set to `true` in extension storage.
 2. Fix the fallback chain in that platform's adapter only — never in `core`.
 3. Add the new selector ahead of the old one, keep the old one while it is
    harmless.

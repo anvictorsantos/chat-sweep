@@ -26,10 +26,10 @@ script only runs on page load, so reload the chat tab too.
 
 ```js
 // extension DevTools console (the page, not the popup)
-chrome.storage.local.set({ 'threadsweep:debug': true });
+chrome.storage.local.set({ 'chat-sweep:debug': true });
 ```
 
-Then reload the tab and watch for `[threadsweep]` lines. They name the adapter,
+Then reload the tab and watch for `[chat-sweep]` lines. They name the adapter,
 the modes it resolved, and which lookup failed. They never include message text.
 
 If the overlay mounts but finds nothing, the shape of the DOM moved:
@@ -87,4 +87,4 @@ change weights there with a test that states the new precedence.
 1. Bump `version` in `package.json` and `public/manifest.base.json` (both).
 2. `npm run verify:all`.
 3. `npm run build && npm run zip`.
-4. Upload `dist/threadsweep-<version>-chrome.zip` and `-firefox.zip`.
+4. Upload `dist/chat-sweep-<version>-chrome.zip` and `-firefox.zip`.

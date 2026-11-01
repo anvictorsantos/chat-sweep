@@ -121,7 +121,7 @@ export class SweepOverlay {
     if (this.host !== null) return;
 
     const host = document.createElement('div');
-    host.setAttribute('data-threadsweep-root', '');
+    host.setAttribute('data-chat-sweep-root', '');
     const shadow = host.attachShadow({ mode: 'open' });
 
     const style = document.createElement('style');
@@ -260,7 +260,7 @@ export class SweepOverlay {
 
     if (this.busy !== null) {
       return `
-        <div class="toolbar" role="toolbar" aria-label="Threadsweep progress">
+        <div class="toolbar" role="toolbar" aria-label="Chat Sweep progress">
           <span class="toolbar__mode">${this.mode === 'thread' ? 'Messages' : 'Conversations'}</span>
           <span class="toolbar__count" aria-live="polite">Working… ${this.busy.done} of ${this.busy.total}</span>
           <progress max="${this.busy.total}" value="${this.busy.done}"></progress>
@@ -272,7 +272,7 @@ export class SweepOverlay {
     const applyLabel = isThread ? 'Hide selected' : 'Delete selected';
 
     return `
-      <div class="toolbar" role="toolbar" aria-label="Threadsweep selection">
+      <div class="toolbar" role="toolbar" aria-label="Chat Sweep selection">
         <span class="toolbar__mode">${isThread ? 'Messages' : 'Conversations'}</span>
         <span class="toolbar__count" data-el="count" aria-live="polite">${selected} selected</span>
         <span class="toolbar__spacer"></span>

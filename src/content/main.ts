@@ -24,7 +24,7 @@ import {
   type RunRequest,
 } from '../ui/overlay.ts';
 
-const ROOT_FLAG = 'data-threadsweep-root';
+const ROOT_FLAG = 'data-chat-sweep-root';
 const REFRESH_DEBOUNCE_MS = 400;
 const DELETE_GAP_MS = 180;
 
@@ -170,7 +170,7 @@ async function execute(
   } else {
     summary = `Deleted ${completed} of ${total} ${nounPlural}. ${capitalise(
       described ?? 'the rest failed',
-    )}. Open the Threadsweep button → Diagnostics for the detail.`;
+    )}. Open the Chat Sweep button → Diagnostics for the detail.`;
   }
 
   debug('run finished', summary);
@@ -233,26 +233,26 @@ async function start(): Promise<void> {
     if (typeof message !== 'object' || message === null) return;
     const { type, mode } = message as { type?: unknown; mode?: unknown };
 
-    if (type === 'threadsweep:status') {
+    if (type === 'chat-sweep:status') {
       respond(status());
       return;
     }
-    if (type === 'threadsweep:open' && (mode === 'thread' || mode === 'history')) {
+    if (type === 'chat-sweep:open' && (mode === 'thread' || mode === 'history')) {
       toggle(mode);
       respond(status());
       return;
     }
-    if (type === 'threadsweep:select-all') {
+    if (type === 'chat-sweep:select-all') {
       overlay.selectAllItems();
       respond(status());
       return;
     }
-    if (type === 'threadsweep:clear') {
+    if (type === 'chat-sweep:clear') {
       overlay.clearItems();
       respond(status());
       return;
     }
-    if (type === 'threadsweep:apply') {
+    if (type === 'chat-sweep:apply') {
       overlay.applyCurrent();
       respond(status());
     }
