@@ -89,6 +89,8 @@ const child = spawn(
   [
     '--headless=new',
     '--disable-gpu',
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
     '--no-first-run',
     '--no-default-browser-check',
     '--disable-extensions',
@@ -126,7 +128,10 @@ child.on('close', async () => {
   if (passed) console.log(`smoke: ${summary}`);
   else {
     console.error(`smoke: ${summary}`);
-    if (stderr.trim().length > 0) console.error(stderr.split('\n').slice(-10).join('\n'));
+    if (stderr.trim().length > 0) {
+      const lines = stderr.trim().split('\n');
+      console.error([...lines.slice(0, 15), ...lines.slice(-10)].join('\n'));
+    }
   }
 
   server.kill('SIGTERM');

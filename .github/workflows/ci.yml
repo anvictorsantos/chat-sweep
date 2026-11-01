@@ -26,6 +26,8 @@ jobs:
 
       - uses: browser-actions/setup-chrome@v1
         id: chrome
+        with:
+          chrome-version: stable
 
       - run: npm run smoke
         env:
